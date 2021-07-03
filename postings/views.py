@@ -37,6 +37,18 @@ class WriteView(View):
         except ValueError:
             return JsonResponse({'error':'INVALID_USER'}, status=400)
 
+class PostingDeleteView(View):
+    @authorization
+    def post(self, request, posting_id):
+        try: 
+            if Posting.objects.filter(id = posting_id, user = request.user):
+                Posting.objects.get(id=posting_id, user = request.user).delete()
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+        except KeyError:
+            return JsonResponse({'error':'KEY_ERROR'}, status=400)
+        except ValueError:
+            return JsonResponse({'error':'INVALID_USER'}, status=400)
+
 class PostingsView(View):
     @authorization
     def get(self, request):
