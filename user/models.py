@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.fields import related
 
 class User(models.Model):
     email        = models.EmailField(max_length=200, unique=True)
@@ -11,3 +12,10 @@ class User(models.Model):
 
     class Meta:
         db_table = 'users'
+
+class Follow(models.Model):
+    follower  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower")
+    
+    class Meta:
+        db_table = 'follows'

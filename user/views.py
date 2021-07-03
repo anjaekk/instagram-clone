@@ -1,11 +1,11 @@
 import json, re, bcrypt
 
-from django.views import View
-from django.http  import JsonResponse
-from django.db    import IntegrityError
+from django.views    import View
+from django.http     import JsonResponse
+from django.db       import IntegrityError
 
-from user.models  import User
-from user.utils   import encode_jwt
+from user.models     import User, Follow
+from user.utils      import encode_jwt, authorization
 
 REGEX = {
     'email'    : '^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
@@ -41,8 +41,8 @@ class SignUpView(View):
 
 class SignInView(View):
     def post(self, request):
-        data = json.loads(request.body)
-        try: 
+        try:
+            data     = json.loads(request.body)
             email    = data['email']
             password = data['password'].encode('utf-8')
             user_id  = User.objects.get(email=email).id
@@ -55,4 +55,21 @@ class SignInView(View):
         except KeyError:
             return JsonResponse({'error': 'KEY_ERROR'}, status=400) # 이메일이나 비밀번호 입력 안했을 떄 
         except User.DoesNotExist:
-            return JsonResponse({'error': 'INVALID_USER'}, status=401) #이메일이 없는 이메일 때 
+            return JsonResponse({'error': 'INVALID_USER'}, status=401) #이메일이 없을 때
+
+class FollowView(View):
+    @authorization
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            if Follow.objects.filter(follower=request.user, following=data['following']):
+                Follow.objects.get(follower=request.user, following=data['following']).delete()
+                return JsonResponse({'message':'UNFOLLOWING'}, staus=200)
+            Follow.objects.create(
+                follower     = request.user,
+                following_id = data['following'])
+            return JsonResponse({'message':'SUCCESS'}, status=201)
+        except KeyError:
+            return JsonResponse({'error':'KEY_ERROR'}, status=400)
+        except ValueError:
+            return JsonResponse({'error':'INVALID_USER'}, status=400)

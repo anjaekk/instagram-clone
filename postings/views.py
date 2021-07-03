@@ -24,7 +24,7 @@ class WriteView(View):
             return JsonResponse({'error':'INVALID_USER'}, status=400)
     
     @authorization
-    def put(self, request):
+    def patch(self, request):
         try:
             data = json.loads(request.body)
             posting = Posting.objects.get(id = data['posting_id'])
@@ -56,11 +56,11 @@ class CommentsView(View):
             data = json.loads(request.body)
             posting = Posting.objects.get(id = posting_id)
             Comment.objects.create(
-                user            = request.user,
-                posting         = posting, 
-                created_at      = timezone.localtime(),
-                updated_at      = timezone.localtime(),
-                comment_text    = data['comment_text'],
+                user               = request.user,
+                posting            = posting, 
+                created_at         = timezone.localtime(),
+                updated_at         = timezone.localtime(),
+                comment_text       = data['comment_text'],
                 parents_comment_id = data.get('parents_comment', None)
             )
             return JsonResponse({'message':'SUCCESS'}, status=201)
@@ -73,13 +73,10 @@ class LikeView(View):
     @authorization
     def post(self, request, posting_id):
         try:
-
-
             posting = Posting.objects.get(id=posting_id)
             if Like.objects.filter(posting=posting, user = request.user):
                 Like.objects.get(posting = posting, user = request.user).delete()
-                return JsonResponse({'message':'unlike'}, statue=200)
-
+                return JsonResponse({'message':'unlike'}, status=200)
             Like.objects.create(posting= posting, user = request.user)
             return JsonResponse({'message':'SUCCESS'}, status=201)
         except KeyError:
