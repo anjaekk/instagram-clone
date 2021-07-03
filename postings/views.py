@@ -81,6 +81,18 @@ class CommentsView(View):
         except ValueError:
             return JsonResponse({'error':'INVALID_USER'}, status=400)
 
+class CommentDeleteView(View):
+    @authorization
+    def post(self, request, comment_id):
+        try:
+            if Comment.objects.filter(id=comment_id, user=request.user):
+                Comment.objects.get(id=comment_id, user=request.user).delete()
+                return JsonResponse({'message':'SUCCESS'}, status=200)
+        except KeyError:
+            return JsonResponse({'error':'KEY_ERROR'}, status=400)
+        except ValueError:
+            return JsonResponse({'error':'INVALID_USER'}, status=400)
+
 class LikeView(View):
     @authorization
     def post(self, request, posting_id):
