@@ -67,9 +67,12 @@ class CommentsView(View):
         try:
             data = json.loads(request.body)
             posting = Posting.objects.get(id = posting_id)
+            if 'parents_comment' in data:
+                if Comment.objects.get(id=data['parents_comment']).parents_comment:
+                    data['parents_comment'] = Comment.objects.get(id=data['parents_comment']).parents_comment.id
             Comment.objects.create(
                 user               = request.user,
-                posting            = posting, 
+                posting            = posting,
                 created_at         = timezone.localtime(),
                 updated_at         = timezone.localtime(),
                 comment_text       = data['comment_text'],
@@ -78,8 +81,8 @@ class CommentsView(View):
             return JsonResponse({'message':'SUCCESS'}, status=201)
         except KeyError:
             return JsonResponse({'error':'KEY_ERROR'}, status=400)
-        except ValueError:
-            return JsonResponse({'error':'INVALID_USER'}, status=400)
+        # except ValueError:
+        #     return JsonResponse({'error':'INVALID_USER'}, status=400)
 
 class CommentDeleteView(View):
     @authorization
